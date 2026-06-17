@@ -1,0 +1,27 @@
+ .font-heading {
+  font-family: Georgia, serif;
+}
+
+.font-body {
+  font-family: "Lora", serif;
+}
+
+.font-body {
+  font-family: "Lora", serif;
+}
+
+/* Bolb css of tutorial page*/
+.clip-blob {
+  clip-path: polygon(
+    0 30%,
+    12% 22%,
+    28% 28%,
+    42% 15%,
+    58% 25%,
+    75% 10%,
+    88% 18%,
+    100% 8%,
+    100% 100%,
+    0 100%
+  );
+}
