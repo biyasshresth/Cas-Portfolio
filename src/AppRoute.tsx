@@ -6,7 +6,7 @@ import CasChallengeSolution from "./components/Cas challange and solution/CasCha
 import OperationStats from "./Operation Stats/OperationStats";
 import FeatureSection from "./components/Feature Section/FeatureSection";
 import CASLandingPage from "./components/landing page/CASLandingPage";
-import "./AppRoutes.css";
+import "./Approutes.css";
 
 const AppRoutes = () => {
   const [entered, setEntered] = useState(false);
