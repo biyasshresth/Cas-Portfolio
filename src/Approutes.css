@@ -1,0 +1,12 @@
+@keyframes appReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.app-reveal {
+  animation: appReveal 0.9s ease forwards;
+}

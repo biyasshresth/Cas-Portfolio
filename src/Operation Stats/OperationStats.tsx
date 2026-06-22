@@ -134,16 +134,13 @@ const StatCard: React.FC<StatCardProps> = ({ label, Icon, bgImage }) => (
         className="stat-card-bg"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-    )}
+       )}
     <div className="stat-icon-wrap">
       <Icon />
     </div>
     <span className="stat-card-label">{label}</span>
   </button>
 );
-
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 const OperationStats: React.FC = () => {
   return (
     <section id="OperationStats" data-nav="light" className="ops-section">
@@ -156,26 +153,18 @@ const OperationStats: React.FC = () => {
       <WatermarkBarChart   className="wm wm-left-barchart" />
       <WatermarkCalculator className="wm wm-left-calc"     />
       <WatermarkCheckboard className="wm wm-left-check"    />
-
-      {/* Watermarks — right */}
       <WatermarkMonitor    className="wm wm-right-monitor"  />
       <WatermarkGear       className="wm wm-right-gear"     />
       <WatermarkCalculator className="wm wm-right-calc"     />
       <WatermarkBarChart   className="wm wm-right-barchart" />
       <WatermarkCheckboard className="wm wm-right-check"    />
-
-      {/* Content */}
       <div className="ops-content">
         <h2 className="ops-title">Operations Stats</h2>
-
-        {/* Row 1 — 3 cards */}
         <div className="ops-row ops-row-1">
           <StatCard label={"Financial\nManagement"} Icon={IconFinancial} bgImage={FinancialImg} />
           <StatCard label={"Employee\nRecords"}     Icon={IconEmployee}  bgImage={EmployeeImg}  />
           <StatCard label={"Suppliers &\nCustomers"} Icon={IconSuppliers} bgImage={SupplierImg} />
         </div>
-
-        {/* Row 2 — 2 cards */}
         <div className="ops-row">
           <StatCard label={"Ledger\nReports"} Icon={IconLedger} bgImage={LedgerImg} />
           <StatCard label={"Cheque\nRecords"} Icon={IconCheque} bgImage={ChequeImg} />
@@ -184,5 +173,4 @@ const OperationStats: React.FC = () => {
     </section>
   );
 };
-
 export default OperationStats;

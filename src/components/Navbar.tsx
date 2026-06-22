@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
- 
-// ─── Nav Links Data ───────────────────────────────────────────────────────────
 
 const NAV_LINKS = [
   { href: "#solutions", id: "solutions", label: "Solutions" },
@@ -8,9 +6,6 @@ const NAV_LINKS = [
   { href: "#industries", id: "industries", label: "Industries" },
   { href: "#pricing", id: "pricing", label: "Pricing" },
 ];
-
-// ─── Custom Animated Icons ────────────────────────────────────────────────────
-
 const BulbIcon = ({ hovered }: { hovered: boolean }) => (
   <svg
     width="16"
@@ -21,9 +16,7 @@ const BulbIcon = ({ hovered }: { hovered: boolean }) => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    style={{ overflow: "visible", flexShrink: 0 }}
-  >
-    {/* Glow halo behind bulb */}
+    style={{ overflow: "visible", flexShrink: 0 }}>
     <circle
       cx="12"
       cy="11"
@@ -36,8 +29,6 @@ const BulbIcon = ({ hovered }: { hovered: boolean }) => (
         transition: "opacity 0.4s ease",
       }}
     />
-
-    {/* Ray 1 — top */}
     <line
       x1="12" y1="1"
       x2="12" y2={hovered ? "3.5" : "3"}
@@ -48,7 +39,6 @@ const BulbIcon = ({ hovered }: { hovered: boolean }) => (
         strokeWidth: 2,
       }}
     />
-    {/* Ray 2 — top-left */}
     <line
       x1={hovered ? "4.5" : "5"} y1={hovered ? "3.5" : "4"}
       x2={hovered ? "5.8" : "6"} y2={hovered ? "4.8" : "5"}
@@ -59,7 +49,6 @@ const BulbIcon = ({ hovered }: { hovered: boolean }) => (
         strokeWidth: 2,
       }}
     />
-    {/* Ray 3 — top-right */}
     <line
       x1={hovered ? "19.5" : "19"} y1={hovered ? "3.5" : "4"}
       x2={hovered ? "18.2" : "18"} y2={hovered ? "4.8" : "5"}
@@ -70,8 +59,6 @@ const BulbIcon = ({ hovered }: { hovered: boolean }) => (
         strokeWidth: 2,
       }}
     />
-
-    {/* Bulb body */}
     <path
       d="M9 21h6M10 17h4M12 3a6 6 0 0 1 6 6c0 2.5-1.5 4.5-3 6H9c-1.5-1.5-3-3.5-3-6a6 6 0 0 1 6-6z"
       style={{
@@ -82,7 +69,6 @@ const BulbIcon = ({ hovered }: { hovered: boolean }) => (
     />
   </svg>
 );
-
 const LayersIcon = ({ hovered }: { hovered: boolean }) => (
   <svg
     width="16"
@@ -92,9 +78,7 @@ const LayersIcon = ({ hovered }: { hovered: boolean }) => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    style={{ overflow: "visible", flexShrink: 0 }}
-  >
-    {/* Bottom layer — slides down */}
+    style={{ overflow: "visible", flexShrink: 0 }} >
     <polygon
       points="12 2 2 7 12 12 22 7 12 2"
       style={{
@@ -103,18 +87,14 @@ const LayersIcon = ({ hovered }: { hovered: boolean }) => (
         fill: hovered ? "rgba(155,111,231,0.15)" : "none",
         stroke: hovered ? "#c4a8f5" : "currentColor",
         transition: "transform 0.35s cubic-bezier(0.34,1.56,0.64,1), fill 0.35s ease, stroke 0.35s ease",
-      }}
-    />
-    {/* Middle layer — stays */}
+      }} />
     <polyline
       points="2 12 12 17 22 12"
       style={{
         stroke: hovered ? "#b08ef0" : "currentColor",
         opacity: hovered ? 1 : 0.6,
         transition: "stroke 0.35s ease, opacity 0.35s ease",
-      }}
-    />
-    {/* Top layer — slides up */}
+      }} />
     <polyline
       points="2 17 12 22 22 17"
       style={{
@@ -122,12 +102,9 @@ const LayersIcon = ({ hovered }: { hovered: boolean }) => (
         transformOrigin: "12px 17px",
         stroke: hovered ? "#9b6fe7" : "currentColor",
         opacity: hovered ? 1 : 0.6,
-        transition: "transform 0.35s cubic-bezier(0.34,1.56,0.64,1) 0.05s, stroke 0.35s ease, opacity 0.35s ease",
-      }}
-    />
+        transition: "transform 0.35s cubic-bezier(0.34,1.56,0.64,1) 0.05s, stroke 0.35s ease, opacity 0.35s ease", }} />
   </svg>
 );
-
 const BuildingIcon = ({ hovered }: { hovered: boolean }) => (
   <svg
     width="16"
@@ -138,59 +115,47 @@ const BuildingIcon = ({ hovered }: { hovered: boolean }) => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    style={{ overflow: "visible", flexShrink: 0 }}
-  >
-    {/* Main building — stays */}
+    style={{ overflow: "visible", flexShrink: 0 }} >
     <rect
       x="3" y="9" width="13" height="13"
       style={{
         fill: hovered ? "rgba(155,111,231,0.15)" : "none",
         stroke: hovered ? "#c4a8f5" : "currentColor",
         transition: "fill 0.3s ease, stroke 0.3s ease",
-      }}
-    />
-    {/* Side building — slides right */}
+      }} />
     <path
       d="M16 6h5v16h-5"
       style={{
         transform: hovered ? "translateX(3px)" : "translateX(0px)",
         stroke: hovered ? "#b08ef0" : "currentColor",
         transition: "transform 0.4s cubic-bezier(0.34,1.56,0.64,1), stroke 0.3s ease",
-      }}
-    />
-    {/* Roof line */}
+      }} />
     <polyline
       points="3 9 9 3 16 9"
       style={{
         transform: hovered ? "translateY(-2px)" : "translateY(0px)",
         stroke: hovered ? "#c4a8f5" : "currentColor",
         transition: "transform 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.05s, stroke 0.3s ease",
-      }}
-    />
-    {/* Door */}
+      }}  />
     <rect
       x="7" y="16" width="4" height="6"
       style={{
         fill: hovered ? "rgba(155,111,231,0.5)" : "none",
         stroke: hovered ? "#9b6fe7" : "currentColor",
         transition: "fill 0.3s ease 0.1s, stroke 0.3s ease",
-      }}
-    />
-    {/* Windows */}
+      }}   />
     <rect x="5" y="12" width="2" height="2"
       style={{
         fill: hovered ? "#c4a8f5" : "none",
         stroke: hovered ? "#c4a8f5" : "currentColor",
         transition: "fill 0.3s ease 0.15s",
-      }}
-    />
+      }}   />
     <rect x="10" y="12" width="2" height="2"
       style={{
         fill: hovered ? "#c4a8f5" : "none",
         stroke: hovered ? "#c4a8f5" : "currentColor",
         transition: "fill 0.3s ease 0.2s",
-      }}
-    />
+      }}  />
   </svg>
 );
 
