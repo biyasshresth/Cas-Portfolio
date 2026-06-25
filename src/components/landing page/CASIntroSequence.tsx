@@ -1,86 +1,103 @@
 import React, { useEffect, useState } from "react";
 import File from "../../assets/File.png";
+import Logo from "../../assets/Logo.png";
 import LandingBg from "../../assets/LandingBg.mp4";
+import YearOdometer from "./OdometerDigit";
 
 interface CASIntroSequenceProps {
   onComplete: () => void;
   casHeadingRef: React.RefObject<HTMLHeadingElement | null>;
   fileImgRef: React.RefObject<HTMLImageElement | null>;
+  bottomTextRef: React.RefObject<HTMLDivElement | null>;
 }
 
-const LETTERS = ["C", "A", "S"];
-
 type Stage =
-  | "videoFadeIn"   // black → video fades in
-  | "fileDrop"      // file Polaroid drops in from above
-  | "lettersIn"     // CAS letters drop in on top of file
-  | "hold"          // brief hold on the final composed frame
-  | "subtitleSlide" // "Central Analytics System" slides in below CAS
-  | "fading";       // everything fades out → onComplete
+  | "videoFadeIn"
+  | "fileDrop"
+  | "logoFadeIn"
+  | "textSlideIn"
+  | "hold"
+  | "fading";
 
 const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
   onComplete,
   casHeadingRef,
   fileImgRef,
+  bottomTextRef,
 }) => {
   const [stage, setStage] = useState<Stage>("videoFadeIn");
   const [fileVisible, setFileVisible] = useState(false);
-  const [lettersVisible, setLettersVisible] = useState(false);
-  const [subtitleVisible, setSubtitleVisible] = useState(false);
-  const [subtitleSlid, setSubtitleSlid] = useState(false);
+  const [logoVisible, setLogoVisible] = useState(false);
+  const [textSlid, setTextSlid] = useState(false);
+  const [yearVisible, setYearVisible] = useState(false);
 
-  const [fileRect, setFileRect] = useState<DOMRect | null>(null);
-  const [casRect, setCasRect] = useState<DOMRect | null>(null);
+  const [filePos, setFilePos] = useState<{
+    cx: number;
+    cy: number;
+    width: number;
+  } | null>(null);
+  const [logoRect, setLogoRect] = useState<DOMRect | null>(null);
+  const [bottomRect, setBottomRect] = useState<DOMRect | null>(null);
 
-  // Stage 1 — video fades in; measure real elements
   useEffect(() => {
     if (stage !== "videoFadeIn") return;
-    const t = window.setTimeout(() => {
-      if (fileImgRef.current) setFileRect(fileImgRef.current.getBoundingClientRect());
-      if (casHeadingRef.current) setCasRect(casHeadingRef.current.getBoundingClientRect());
-      setFileVisible(true);
-      setStage("fileDrop");
-    }, 1000);
-    return () => window.clearTimeout(t);
-  }, [stage, fileImgRef, casHeadingRef]);
 
-  // Stage 2 — file animation plays; then show letters
+    const raf = requestAnimationFrame(() => {
+      if (fileImgRef.current) {
+        const r = fileImgRef.current.getBoundingClientRect();
+        setFilePos({
+          cx: r.left + r.width / 2,
+          cy: r.top + r.height / 2,
+          width: fileImgRef.current.offsetWidth,
+        });
+      }
+      if (casHeadingRef.current)
+        setLogoRect(casHeadingRef.current.getBoundingClientRect());
+      if (bottomTextRef.current)
+        setBottomRect(bottomTextRef.current.getBoundingClientRect());
+
+      const t = window.setTimeout(() => {
+        setFileVisible(true);
+        setStage("fileDrop");
+        window.setTimeout(() => setYearVisible(true), 600);
+      }, 1000);
+
+      return () => window.clearTimeout(t);
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [stage, fileImgRef, casHeadingRef, bottomTextRef]);
+
   useEffect(() => {
     if (stage !== "fileDrop") return;
     const t = window.setTimeout(() => {
-      setLettersVisible(true);
-      setStage("lettersIn");
+      setLogoVisible(true);
+      setStage("logoFadeIn");
     }, 1100);
     return () => window.clearTimeout(t);
   }, [stage]);
 
-  // Stage 3 — letters animate in
   useEffect(() => {
-    if (stage !== "lettersIn") return;
-    const t = window.setTimeout(() => setStage("hold"), 1400);
+    if (stage !== "logoFadeIn") return;
+    const t = window.setTimeout(() => {
+      setStage("textSlideIn");
+      window.setTimeout(() => setTextSlid(true), 40);
+    }, 950);
     return () => window.clearTimeout(t);
   }, [stage]);
 
-  // Stage 4 — hold, then trigger subtitle slide
+  useEffect(() => {
+    if (stage !== "textSlideIn") return;
+    const t = window.setTimeout(() => setStage("hold"), 1000);
+    return () => window.clearTimeout(t);
+  }, [stage]);
+
   useEffect(() => {
     if (stage !== "hold") return;
-    const t = window.setTimeout(() => {
-      setSubtitleVisible(true);
-      setStage("subtitleSlide");
-      // Slight delay so the element mounts before we trigger the slide-in transition
-      window.setTimeout(() => setSubtitleSlid(true), 60);
-    }, 500);
+    const t = window.setTimeout(() => setStage("fading"), 700);
     return () => window.clearTimeout(t);
   }, [stage]);
 
-  // Stage 5 — subtitle has slid in; hold briefly then fade out
-  useEffect(() => {
-    if (stage !== "subtitleSlide") return;
-    const t = window.setTimeout(() => setStage("fading"), 1200);
-    return () => window.clearTimeout(t);
-  }, [stage]);
-
-  // Stage 6 — fade out, hand off
   useEffect(() => {
     if (stage !== "fading") return;
     const t = window.setTimeout(onComplete, 500);
@@ -89,41 +106,57 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
 
   const isFading = stage === "fading";
 
-  const fileStyle: React.CSSProperties = fileRect
+  const fileStyle: React.CSSProperties = filePos
+    ? (() => {
+        const w = filePos.width;
+        const h = fileImgRef.current?.offsetHeight ?? w;
+        return {
+          position: "fixed" as const,
+          left: filePos.cx - w / 2,
+          top: filePos.cy - h / 2,
+          width: w,
+          height: h,
+          margin: 0,
+          opacity: fileVisible ? 1 : 0,
+          pointerEvents: "none" as const,
+          zIndex: 60,
+        };
+      })()
+    : { display: "none" };
+
+  const logoStyle: React.CSSProperties = logoRect
     ? {
         position: "fixed",
-        top: fileRect.top,
-        left: fileRect.left,
-        width: fileRect.width,
-        height: fileRect.height,
+        top: logoRect.top,
+        left: logoRect.left,
+        width: logoRect.width,
+        height: logoRect.height,
         margin: 0,
+        objectFit: "contain" as const,
+        opacity: logoVisible ? 1 : 0,
+        transition: "opacity 0.85s ease",
+        filter: "drop-shadow(0 0 20px rgba(255, 255, 255, 0.3))",
+        pointerEvents: "none" as const,
+        userSelect: "none" as const,
+        zIndex: 61,
       }
     : { display: "none" };
 
-  const casStyle: React.CSSProperties = casRect
+  const textStyle: React.CSSProperties = bottomRect
     ? {
         position: "fixed",
-        top: casRect.top,
-        left: casRect.left,
-        width: casRect.width,
-        height: casRect.height,
-        fontSize: casRect.height,
-        margin: 0,
-      }
-    : { display: "none" };
-
-  // Subtitle appears just below the CAS heading
-  const subtitleStyle: React.CSSProperties = casRect
-    ? {
-        position: "fixed",
-        top: casRect.bottom + 8,
-        left: casRect.left,
-        width: casRect.width,
-        textAlign: "center" as const,
-        // Slide from where "COMPLETE ACCOUNTING SYSTEM" sits (below) up to just under CAS
-        transform: subtitleSlid ? "translateY(0)" : "translateY(32px)",
-        opacity: subtitleSlid ? 1 : 0,
-        transition: "transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.7s ease",
+        top: bottomRect.top,
+        left: bottomRect.left,
+        width: bottomRect.width,
+        display: "flex",
+        flexDirection: "column" as const,
+        alignItems: "center",
+        opacity: textSlid ? 1 : 0,
+        transform: textSlid ? "translateY(0)" : "translateY(-24px)",
+        transition:
+          "opacity 0.9s ease, transform 1.1s cubic-bezier(0.16, 1, 0.3, 1)",
+        pointerEvents: "none" as const,
+        zIndex: 62,
       }
     : { display: "none" };
 
@@ -132,32 +165,49 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
       className={`intro-backdrop ${isFading ? "intro-fading" : ""}`}
       aria-hidden="true"
     >
-      {/* ── 1. Background video ── */}
       <video
-        className={`intro-video ${stage !== "videoFadeIn" ? "intro-video--visible" : ""}`}
         src={LandingBg}
         autoPlay
         loop
         muted
         playsInline
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          opacity: stage !== "videoFadeIn" ? 1 : 0,
+          transition: "opacity 0.9s ease",
+          filter: "blur(6px)",
+          transform: "scale(1.05)",
+          zIndex: 0,
+        }}
       />
-
-      {/* ── Blur + dark overlay ── */}
-      <div className="intro-blur-overlay" />
-      <div className="intro-overlay-dark" />
-
-      {/* ── Corner brackets ── */}
-      <span className="intro-corner intro-corner-tl" />
-      <span className="intro-corner intro-corner-br" />
-
-      {/* ── 2025 year block ── */}
-      <div className="intro-year-block font-display">
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0, 0, 0, 0.55)",
+          pointerEvents: "none",
+          zIndex: 1,
+        }}
+      />
+      <span className="intro-corner intro-corner-tl" style={{ zIndex: 2 }} />
+      <span className="intro-corner intro-corner-br" style={{ zIndex: 2 }} />
+      <div
+        className="intro-year-block font-display mb-5"
+        style={{
+          zIndex: 2,
+          opacity: yearVisible ? 1 : 0,
+          transform: yearVisible ? "translateY(0)" : "translateY(6px)",
+          transition: "opacity 1.2s ease, transform 1.2s ease",
+        }}
+      >
         <span className="intro-diamond">✦</span>
-        <span className="intro-year">2025</span>
+        <YearOdometer year="2026" className="intro-year" spinKey={yearVisible} />
       </div>
-
-      {/* ── 2. File: Polaroid drop ── */}
-      {fileVisible && fileRect && (
+      {filePos && (
         <img
           src={File}
           alt=""
@@ -166,29 +216,26 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
           style={fileStyle}
         />
       )}
-
-      {/* ── 3. CAS letters ── */}
-      {lettersVisible && casRect && (
-        <h1 className="intro-cas-final font-cas" style={casStyle}>
-          {LETTERS.map((letter, i) => (
-            <span
-              key={letter}
-              className="intro-letter"
-              style={{ animationDelay: `${i * 0.22}s` }}
-            >
-              {letter}
-            </span>
-          ))}
-        </h1>
+      {logoRect && (
+        <img
+          src={Logo}
+          alt="CAS — Central Analytics System"
+          draggable={false}
+          style={logoStyle}
+        />
       )}
-
-      {/* ── 4. Subtitle slides in below CAS ── */}
-      {subtitleVisible && casRect && (
-        <p className="intro-subtitle font-display" style={subtitleStyle}>
-          <span className="landing-pipe">|</span>
-          &nbsp;&nbsp;CENTRAL ANALYTICS SYSTEM&nbsp;&nbsp;
-          <span className="landing-pipe">|</span>
-        </p>
+      {bottomRect && (
+        <div style={textStyle}>
+          <p className="landing-subtitle font-display">
+            <span className="landing-pipe">|</span>
+            &nbsp;&nbsp;COMPLETE ACCOUNTING SYSTEM&nbsp;&nbsp;
+            <span className="landing-pipe">|</span>
+          </p>
+          <div className="cas-underline" />
+          <p className="landing-cta font-display">
+            CLICK ANYWHERE TO INITIALIZE SYSTEM
+          </p>
+        </div>
       )}
     </div>
   );

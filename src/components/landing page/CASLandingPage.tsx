@@ -1,9 +1,11 @@
 import React, { useRef, useState } from "react";
 import File from "../../assets/File.png";
+import Logo from "../../assets/Logo.png";
 import LandingBg from "../../assets/LandingBg.mp4";
 import "./CASLandingPage.css";
 import CASIntroSequence from "./CASIntroSequence";
 import CASBackgroundFX from "./CASBackgroundFX";
+import YearOdometer from "./OdometerDigit";
 
 interface CASLandingPageProps {
   onStart?: () => void;
@@ -14,7 +16,8 @@ const CASLandingPage: React.FC<CASLandingPageProps> = ({ onStart }) => {
   const [introDone, setIntroDone] = useState(false);
 
   const casHeadingRef = useRef<HTMLHeadingElement>(null);
-  const fileImgRef = useRef<HTMLImageElement>(null);
+  const fileImgRef    = useRef<HTMLImageElement>(null);
+  const bottomTextRef = useRef<HTMLDivElement>(null);
 
   const handleStart = () => {
     if (!introDone) return;
@@ -30,6 +33,7 @@ const CASLandingPage: React.FC<CASLandingPageProps> = ({ onStart }) => {
           onComplete={() => setIntroDone(true)}
           casHeadingRef={casHeadingRef}
           fileImgRef={fileImgRef}
+          bottomTextRef={bottomTextRef}
         />
       )}
       <div
@@ -39,8 +43,9 @@ const CASLandingPage: React.FC<CASLandingPageProps> = ({ onStart }) => {
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") handleStart();
         }}
-        className={`landing-root page-content ${introDone ? "revealed" : ""}`}
-        aria-label="Click anywhere to start the accounting application">
+        className="landing-root"
+        aria-label="Click anywhere to start the accounting application"
+      >
         <video
           className="landing-video"
           src={LandingBg}
@@ -57,35 +62,34 @@ const CASLandingPage: React.FC<CASLandingPageProps> = ({ onStart }) => {
         <CASBackgroundFX />
         <span className="corner-bracket corner-tl" />
         <span className="landing-system-label font-display mt-2">
-          • CAS SYSTEM V1.0.0
+          • Powerd by " R P R E "
         </span>
-        <div className="landing-ticks">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <span
-              key={i}
-              className="landing-tick"
-              style={{ "--tick-index": i } as React.CSSProperties} />
-          ))}
-        </div>
         <span className="corner-bracket corner-br" />
+
         <div className="landing-year-block font-display">
           <span className="landing-diamond">✦</span>
-          <span className="landing-year mb-5">2025</span>
+          <YearOdometer year="2026" className="landing-year mb-5" />
         </div>
-        <div className="landing-center">
-          <h1 ref={casHeadingRef} className="landing-cas font-cas">
-            CAS
-          </h1>
-          <p className={`landing-cas-fullform font-display ${introDone ? "landing-cas-fullform--visible" : ""}`}>
-            CENTRAL ANALYTICS SYSTEM
-          </p>
-          <img
-            ref={fileImgRef}
-            src={File}
-            alt="CAS folder"
-            draggable={false}
-            className={`landing-file file-hover ${isPressed ? "landing-file--pressed" : ""}`}/>
-          <div className="landing-bottom-text">
+
+        <div className="landing-center mt-26">
+          <div className="landing-file-logo-stack mt-24">
+            <img
+              ref={fileImgRef}
+              src={File}
+              alt="CAS folder"
+              draggable={false}
+              className={`landing-file file-hover ${isPressed ? "landing-file--pressed" : ""}`}
+            />
+            <img
+              ref={casHeadingRef as React.RefObject<HTMLImageElement>}
+              src={Logo}
+              alt="CAS — Central Analytics System"
+              draggable={false}
+              className="landing-logo-overlay landing-logo-overlay--visible"
+            />
+          </div>
+
+          <div ref={bottomTextRef} className="landing-bottom-text mt-16">
             <p className="landing-subtitle font-display">
               <span className="landing-pipe">|</span>
               &nbsp;&nbsp;COMPLETE ACCOUNTING SYSTEM&nbsp;&nbsp;
