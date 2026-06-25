@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import File from "../../assets/File.png";
 import Logo from "../../assets/Logo.png";
 import LandingBg from "../../assets/LandingBg.mp4";
@@ -35,38 +35,68 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
     cx: number;
     cy: number;
     width: number;
+    height: number;
   } | null>(null);
   const [logoRect, setLogoRect] = useState<DOMRect | null>(null);
   const [bottomRect, setBottomRect] = useState<DOMRect | null>(null);
 
+  // Robust measurement: poll until all refs have non-zero dimensions
+  const measureRefs = useCallback((): boolean => {
+    const fileEl = fileImgRef.current;
+    const logoEl = casHeadingRef.current;
+    const bottomEl = bottomTextRef.current;
+
+    if (!fileEl || !logoEl || !bottomEl) return false;
+
+    const fr = fileEl.getBoundingClientRect();
+    const lr = logoEl.getBoundingClientRect();
+    const br = bottomEl.getBoundingClientRect();
+
+    // Bail if any rect still has zero area (not yet painted)
+    if (fr.width === 0 || lr.width === 0 || br.width === 0) return false;
+
+    setFilePos({
+      cx: fr.left + fr.width / 2,
+      cy: fr.top + fr.height / 2,
+      width: fr.width,
+      height: fr.height,
+    });
+    setLogoRect(lr);
+    setBottomRect(br);
+    return true;
+  }, [fileImgRef, casHeadingRef, bottomTextRef]);
+
   useEffect(() => {
     if (stage !== "videoFadeIn") return;
 
-    const raf = requestAnimationFrame(() => {
-      if (fileImgRef.current) {
-        const r = fileImgRef.current.getBoundingClientRect();
-        setFilePos({
-          cx: r.left + r.width / 2,
-          cy: r.top + r.height / 2,
-          width: fileImgRef.current.offsetWidth,
-        });
-      }
-      if (casHeadingRef.current)
-        setLogoRect(casHeadingRef.current.getBoundingClientRect());
-      if (bottomTextRef.current)
-        setBottomRect(bottomTextRef.current.getBoundingClientRect());
+    let rafId: number;
+    let pollCount = 0;
+    const MAX_POLLS = 60; // ~1 second at 60fps
 
-      const t = window.setTimeout(() => {
+    const poll = () => {
+      pollCount++;
+      if (measureRefs()) {
+        // All refs measured — kick off animation
+        window.setTimeout(() => {
+          setFileVisible(true);
+          setStage("fileDrop");
+          window.setTimeout(() => setYearVisible(true), 600);
+        }, 300); // Reduced from 1000ms; layout is confirmed ready
+      } else if (pollCount < MAX_POLLS) {
+        rafId = requestAnimationFrame(poll);
+      } else {
+        // Fallback: force-measure whatever we have and proceed anyway
+        measureRefs();
         setFileVisible(true);
         setStage("fileDrop");
         window.setTimeout(() => setYearVisible(true), 600);
-      }, 1000);
+      }
+    };
 
-      return () => window.clearTimeout(t);
-    });
-
-    return () => cancelAnimationFrame(raf);
-  }, [stage, fileImgRef, casHeadingRef, bottomTextRef]);
+    // Wait one frame for the DOM to settle, then start polling
+    rafId = requestAnimationFrame(poll);
+    return () => cancelAnimationFrame(rafId);
+  }, [stage, measureRefs]);
 
   useEffect(() => {
     if (stage !== "fileDrop") return;
@@ -104,24 +134,29 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
     return () => window.clearTimeout(t);
   }, [stage, onComplete]);
 
+  // Re-measure on window resize (handles mobile orientation changes)
+  useEffect(() => {
+    const onResize = () => {
+      if (stage !== "videoFadeIn") measureRefs();
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [stage, measureRefs]);
+
   const isFading = stage === "fading";
 
   const fileStyle: React.CSSProperties = filePos
-    ? (() => {
-        const w = filePos.width;
-        const h = fileImgRef.current?.offsetHeight ?? w;
-        return {
-          position: "fixed" as const,
-          left: filePos.cx - w / 2,
-          top: filePos.cy - h / 2,
-          width: w,
-          height: h,
-          margin: 0,
-          opacity: fileVisible ? 1 : 0,
-          pointerEvents: "none" as const,
-          zIndex: 60,
-        };
-      })()
+    ? {
+        position: "fixed" as const,
+        left: filePos.cx - filePos.width / 2,
+        top: filePos.cy - filePos.height / 2,
+        width: filePos.width,
+        height: filePos.height,
+        margin: 0,
+        opacity: fileVisible ? 1 : 0,
+        pointerEvents: "none" as const,
+        zIndex: 60,
+      }
     : { display: "none" };
 
   const logoStyle: React.CSSProperties = logoRect
@@ -171,6 +206,10 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
         loop
         muted
         playsInline
+        // Attempt to play after load in case autoplay was blocked
+        onLoadedData={(e) => {
+          (e.target as HTMLVideoElement).play().catch(() => {});
+        }}
         style={{
           position: "absolute",
           inset: 0,
