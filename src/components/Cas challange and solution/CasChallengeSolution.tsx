@@ -30,7 +30,7 @@ const CasChallengeSolution: React.FC = () => {
       {/* ── DESKTOP VIEW (hidden below md) ───────────────────────── */}
       <section
         data-nav="light"
-        className="hidden md:block w-full max-w-7xl mx-auto px-6 font-sans">
+        className="hidden md:block w-full max-w-7xl mx-auto px-6 font-sans bg-white">
         <ScrollSentinel step={0} />
         <ScrollReveal step={0}>
           <h2 className="text-4xl font-bold text-gray-900 text-center font-heading py-14">
