@@ -158,8 +158,9 @@ const OperationStats: React.FC = () => {
       <WatermarkCalculator className="wm wm-right-calc"     />
       <WatermarkBarChart   className="wm wm-right-barchart" />
       <WatermarkCheckboard className="wm wm-right-check"    />
-      <div className="ops-content">
-        <h2 className="ops-title">Operations Stats</h2>
+      <div className="ops-content ml-5">
+      <h2 className="ops-title">
+       <span style={{ color: "#ffffff" }}>Operations</span> Stats</h2>
         <div className="ops-row ops-row-1">
           <StatCard label={"Financial\nManagement"} Icon={IconFinancial} bgImage={FinancialImg} />
           <StatCard label={"Employee\nRecords"}     Icon={IconEmployee}  bgImage={EmployeeImg}  />

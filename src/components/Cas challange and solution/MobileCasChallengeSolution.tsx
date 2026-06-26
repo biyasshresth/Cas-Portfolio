@@ -4,26 +4,16 @@ import CasSolutionImage from "../../assets/CasSolutionImage.png";
 import { challenges, ImageWithFallback, solutions } from "./ChallengeSolutionData";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 
-/**
- * MobileCasChallengeSolution
- *
- * Drop-in replacement for the inner content of CasChallengeSolution
- * that is rendered ONLY on mobile (< md breakpoint).
- *
- * Changes vs. desktop:
- *  1. Tab bar: [ Challenges ] [ Solution ] — toggles which column is shown.
- *  2. Both images sit side-by-side horizontally below the tab bar.
- *  3. Each row of cards is rendered with equal height via CSS grid stretch.
- */
+
 const MobileCasChallengeSolution: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"challenges" | "solution">(
     "challenges"
   );
 
   return (
-    <div className="md:hidden w-full font-sans px-4">
+    <div className="md:hidden w-full font-sans px-4 bg-white">
       {/* ── Tab bar ─────────────────────────────────────────────── */}
-      <div className="flex rounded-2xl border border-gray-200 overflow-hidden mb-5 shadow-sm">
+      <div className="flex rounded-2xl border border-gray-200 overflow-hidden mb-5 shadow-sm ">
         <button
           onClick={() => setActiveTab("challenges")}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-semibold tracking-widest uppercase transition-colors ${
