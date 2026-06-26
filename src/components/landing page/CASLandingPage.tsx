@@ -15,8 +15,10 @@ const CASLandingPage: React.FC<CASLandingPageProps> = ({ onStart }) => {
   const [isPressed, setIsPressed] = useState(false);
   const [introDone, setIntroDone] = useState(false);
 
-  const casHeadingRef = useRef<HTMLHeadingElement>(null);
-  const fileImgRef    = useRef<HTMLImageElement>(null);
+  // casHeadingRef removed — CASIntroSequence no longer measures the logo.
+  // The intro renders the logo using the same CSS class directly, so it always
+  // matches the real logo's position with no measurement or timing dependency.
+  const fileImgRef   = useRef<HTMLImageElement>(null);
   const bottomTextRef = useRef<HTMLDivElement>(null);
 
   const handleStart = () => {
@@ -31,7 +33,6 @@ const CASLandingPage: React.FC<CASLandingPageProps> = ({ onStart }) => {
       {!introDone && (
         <CASIntroSequence
           onComplete={() => setIntroDone(true)}
-          casHeadingRef={casHeadingRef}
           fileImgRef={fileImgRef}
           bottomTextRef={bottomTextRef}
         />
@@ -80,8 +81,11 @@ const CASLandingPage: React.FC<CASLandingPageProps> = ({ onStart }) => {
               draggable={false}
               className={`landing-file file-hover ${isPressed ? "landing-file--pressed" : ""}`}
             />
+            {/*
+              No ref needed here anymore. The intro sequence renders its own
+              logo clone using this same class, so positioning is always in sync.
+            */}
             <img
-              ref={casHeadingRef as React.RefObject<HTMLImageElement>}
               src={Logo}
               alt="CAS — Central Analytics System"
               draggable={false}
