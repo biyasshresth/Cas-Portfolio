@@ -4,6 +4,16 @@ import Logo from "../../assets/Logo.png";
 import LandingBg from "../../assets/LandingBg.mp4";
 import YearOdometer from "./OdometerDigit";
 
+// ─── Hardcoded file image size ────────────────────────────────────────────────
+// Must match .landing-file { width: 240px } in CASLandingPage.css.
+// Using fixed dimensions here prevents the intro clone from rendering tiny on
+// Netlify, where getBoundingClientRect() can fire before File.png has loaded
+// and returns near-zero dimensions from the CDN-delayed asset.
+const FILE_W = 240;
+// Compute FILE_H from your actual File.png natural aspect ratio.
+// If unsure, temporarily log fr.height on localhost and paste it here.
+const FILE_H = 300; // ← adjust to match your File.png height at width=240
+
 interface CASIntroSequenceProps {
   onComplete: () => void;
   casHeadingRef: React.RefObject<HTMLHeadingElement | null>;
@@ -31,16 +41,15 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
   const [textSlid, setTextSlid] = useState(false);
   const [yearVisible, setYearVisible] = useState(false);
 
-  const [filePos, setFilePos] = useState<{
-    cx: number;
-    cy: number;
-    width: number;
-    height: number;
-  } | null>(null);
+  // filePos now stores only the CENTER coordinates — size comes from FILE_W/FILE_H constants
+  const [filePos, setFilePos] = useState<{ cx: number; cy: number } | null>(null);
   const [logoRect, setLogoRect] = useState<DOMRect | null>(null);
   const [bottomRect, setBottomRect] = useState<DOMRect | null>(null);
 
-  // Robust measurement: poll until all refs have non-zero dimensions
+  // Robust measurement: poll until all refs have non-zero dimensions.
+  // We use a minimum size threshold (50px) instead of checking for zero,
+  // because on Netlify the image can render at a tiny interim size (e.g. 1–2px)
+  // while the CDN asset is still loading, which would previously pass the zero check.
   const measureRefs = useCallback((): boolean => {
     const fileEl = fileImgRef.current;
     const logoEl = casHeadingRef.current;
@@ -52,14 +61,15 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
     const lr = logoEl.getBoundingClientRect();
     const br = bottomEl.getBoundingClientRect();
 
-    // Bail if any rect still has zero area (not yet painted)
-    if (fr.width === 0 || lr.width === 0 || br.width === 0) return false;
+    // Require a meaningful rendered size before proceeding.
+    // fr only needs a center point — but if it's < 50px the image hasn't loaded yet.
+    // lr must be large enough to confirm the logo/heading is painted.
+    if (fr.width < 50 || lr.width < 50 || br.width === 0) return false;
 
+    // Store ONLY center coords for the file — size is fixed via FILE_W / FILE_H
     setFilePos({
       cx: fr.left + fr.width / 2,
       cy: fr.top + fr.height / 2,
-      width: fr.width,
-      height: fr.height,
     });
     setLogoRect(lr);
     setBottomRect(br);
@@ -76,12 +86,11 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
     const poll = () => {
       pollCount++;
       if (measureRefs()) {
-        // All refs measured — kick off animation
         window.setTimeout(() => {
           setFileVisible(true);
           setStage("fileDrop");
           window.setTimeout(() => setYearVisible(true), 600);
-        }, 300); // Reduced from 1000ms; layout is confirmed ready
+        }, 300);
       } else if (pollCount < MAX_POLLS) {
         rafId = requestAnimationFrame(poll);
       } else {
@@ -93,7 +102,6 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
       }
     };
 
-    // Wait one frame for the DOM to settle, then start polling
     rafId = requestAnimationFrame(poll);
     return () => cancelAnimationFrame(rafId);
   }, [stage, measureRefs]);
@@ -145,13 +153,17 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
 
   const isFading = stage === "fading";
 
+  // File clone uses fixed FILE_W × FILE_H — NOT the measured rect dimensions.
+  // This is the core fix: the intro overlay file always matches the CSS size
+  // regardless of when the asset finishes loading on the CDN.
   const fileStyle: React.CSSProperties = filePos
     ? {
         position: "fixed" as const,
-        left: filePos.cx - filePos.width / 2,
-        top: filePos.cy - filePos.height / 2,
-        width: filePos.width,
-        height: filePos.height,
+        left: filePos.cx - FILE_W / 2,
+        top: filePos.cy - FILE_H / 2,
+        width: FILE_W,
+        height: FILE_H,
+        objectFit: "contain" as const,
         margin: 0,
         opacity: fileVisible ? 1 : 0,
         pointerEvents: "none" as const,
@@ -206,7 +218,6 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
         loop
         muted
         playsInline
-        // Attempt to play after load in case autoplay was blocked
         onLoadedData={(e) => {
           (e.target as HTMLVideoElement).play().catch(() => {});
         }}
