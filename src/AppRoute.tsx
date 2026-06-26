@@ -7,6 +7,8 @@ import OperationStats from "./Operation Stats/OperationStats";
 import FeatureSection from "./components/Feature Section/FeatureSection";
 import CASLandingPage from "./components/landing page/CASLandingPage";
 import "./Approutes.css";
+ import Footer from "./components/Footer";
+import Contact from "./components/Contact page/Contact";
 
 const AppRoutes = () => {
   const [entered, setEntered] = useState(false);
@@ -23,6 +25,8 @@ const AppRoutes = () => {
       <OperationStats />
       <FeatureSection />
       <Tutorial />
+      <Contact />
+      <Footer />
     </div>
   );
 };

@@ -81,10 +81,6 @@ const CASLandingPage: React.FC<CASLandingPageProps> = ({ onStart }) => {
               draggable={false}
               className={`landing-file file-hover ${isPressed ? "landing-file--pressed" : ""}`}
             />
-            {/*
-              No ref needed here anymore. The intro sequence renders its own
-              logo clone using this same class, so positioning is always in sync.
-            */}
             <img
               src={Logo}
               alt="CAS — Central Analytics System"

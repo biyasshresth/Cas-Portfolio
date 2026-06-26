@@ -17,8 +17,10 @@ import MobileCasChallengeSolution from "./MobileCasChallengeSolution";
 const CasChallengeSolution: React.FC = () => {
   return (
     <ScrollRevealProvider>
+            <div className="w-full bg-white">
+
       {/* ── MOBILE VIEW (hidden on md+) ───────────────────────────── */}
-      <section data-nav="light" className="md:hidden w-full max-w-7xl mx-auto">
+      <section data-nav="light" className="md:hidden w-full max-w-7xl mx-auto bg-white">
         <h2 className="text-3xl font-bold text-gray-900 text-center font-heading py-10 px-4">
           Challenges And Solution
           <br />
@@ -161,6 +163,7 @@ const CasChallengeSolution: React.FC = () => {
         })}
         <div className="pb-20" />
       </section>
+      </div>
     </ScrollRevealProvider>
   );
 };

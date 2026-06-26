@@ -21,12 +21,7 @@ const FeatureSection: React.FC = () => {
           Features Section
         </h1>
         <div className="flex flex-col lg:flex-row items-start gap-8 mb-14">
-          {/* <div className="lg:w-56 flex-shrink-0">
-            <SectionHeading>Financial Management</SectionHeading>
-            <div className="mt-4">
-              <FinanceCard />
-            </div>
-          </div> */}
+          
           <div className="flex-1">
             <DashboardImage src={HrdashBoard} />
           </div>

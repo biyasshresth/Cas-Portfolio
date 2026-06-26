@@ -13,7 +13,7 @@
 .ops-bg-purple {
   position: absolute;
   inset: 0;
-  background: #9b6fe7;
+  background: linear-gradient(135deg, #1a0b2e 0%, #2d1b4e 50%, #1a0b2e 100%);
   clip-path: polygon(0 0, 62% 0, 38% 100%, 0 100%);
   z-index: 0;
 }
@@ -21,7 +21,7 @@
 .ops-bg-white {
   position: absolute;
   inset: 0;
-  background: #f5f3fa;
+  background: white;
   clip-path: polygon(62% 0, 100% 0, 100% 100%, 38% 100%);
   z-index: 0;
 }
