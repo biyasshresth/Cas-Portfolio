@@ -41,15 +41,24 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
   const [textSlid, setTextSlid] = useState(false);
   const [yearVisible, setYearVisible] = useState(false);
 
-  // filePos now stores only the CENTER coordinates — size comes from FILE_W/FILE_H constants
+  // filePos stores only CENTER coordinates — size comes from FILE_W/FILE_H constants.
+  // logoPos stores the VISUAL center of the logo accounting for its CSS transform,
+  // so the intro clone can be placed with position:fixed without transform issues.
   const [filePos, setFilePos] = useState<{ cx: number; cy: number } | null>(null);
-  const [logoRect, setLogoRect] = useState<DOMRect | null>(null);
+  const [logoPos, setLogoPos] = useState<{ cx: number; cy: number; w: number; h: number } | null>(null);
   const [bottomRect, setBottomRect] = useState<DOMRect | null>(null);
 
   // Robust measurement: poll until all refs have non-zero dimensions.
   // We use a minimum size threshold (50px) instead of checking for zero,
   // because on Netlify the image can render at a tiny interim size (e.g. 1–2px)
   // while the CDN asset is still loading, which would previously pass the zero check.
+  //
+  // KEY FIX FOR LOGO: casHeadingRef points to the logo <img> which has
+  // `transform: translate(-50%, -65%)` applied via CSS. getBoundingClientRect()
+  // returns the POST-transform visual rect, so top/left are the actual screen
+  // position — which is correct. We store the visual center + size from this rect
+  // and use them directly with position:fixed (no transform on the clone), so the
+  // clone sits exactly where the real logo appears on screen.
   const measureRefs = useCallback((): boolean => {
     const fileEl = fileImgRef.current;
     const logoEl = casHeadingRef.current;
@@ -63,15 +72,24 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
 
     // Require a meaningful rendered size before proceeding.
     // fr only needs a center point — but if it's < 50px the image hasn't loaded yet.
-    // lr must be large enough to confirm the logo/heading is painted.
+    // lr must be large enough to confirm the logo image is painted.
     if (fr.width < 50 || lr.width < 50 || br.width === 0) return false;
 
-    // Store ONLY center coords for the file — size is fixed via FILE_W / FILE_H
     setFilePos({
       cx: fr.left + fr.width / 2,
       cy: fr.top + fr.height / 2,
     });
-    setLogoRect(lr);
+
+    // Store the visual center + dimensions of the logo as rendered on screen.
+    // getBoundingClientRect() already accounts for the CSS transform, so these
+    // values reflect exactly where the logo visually appears — no further offset needed.
+    setLogoPos({
+      cx: lr.left + lr.width / 2,
+      cy: lr.top + lr.height / 2,
+      w: lr.width,
+      h: lr.height,
+    });
+
     setBottomRect(br);
     return true;
   }, [fileImgRef, casHeadingRef, bottomTextRef]);
@@ -171,13 +189,17 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
       }
     : { display: "none" };
 
-  const logoStyle: React.CSSProperties = logoRect
+  // Logo clone is positioned using the VISUAL center from logoPos.
+  // We anchor to the visual center (no CSS transform on the clone itself)
+  // because the original logo has transform:translate(-50%,-65%) applied,
+  // which would make a naive top/left copy appear at the wrong location.
+  const logoStyle: React.CSSProperties = logoPos
     ? {
         position: "fixed",
-        top: logoRect.top,
-        left: logoRect.left,
-        width: logoRect.width,
-        height: logoRect.height,
+        top: logoPos.cy - logoPos.h / 2,
+        left: logoPos.cx - logoPos.w / 2,
+        width: logoPos.w,
+        height: logoPos.h,
         margin: 0,
         objectFit: "contain" as const,
         opacity: logoVisible ? 1 : 0,
@@ -266,7 +288,7 @@ const CASIntroSequence: React.FC<CASIntroSequenceProps> = ({
           style={fileStyle}
         />
       )}
-      {logoRect && (
+      {logoPos && (
         <img
           src={Logo}
           alt="CAS — Central Analytics System"
